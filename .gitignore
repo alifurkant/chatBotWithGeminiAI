@@ -1,0 +1,32 @@
+# Ignore environment files
+.env
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# C extensions
+*.c
+*.o
+*.a
+*.dylib
+*.so
+*.dll
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Logs and databases
+*.log
+*.sqlite3
+
+# Unit test / coverage reports
+.coverage
+*.cover
+*.py,cover
+
+# Ignore macOS system files
+.DS_Store

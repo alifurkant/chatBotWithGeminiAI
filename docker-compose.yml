@@ -1,0 +1,11 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      API_KEY: 'AIzaSyADKHUlAtYLErFky6pPB3I3XbPbwN9V4Sw'
+      APP_ENVIRONMENT : 'DEVELOPMENT'
