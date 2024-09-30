@@ -17,14 +17,15 @@ This application allows users to upload PDF files and interact with them via a c
 - FastAPI for the web framework
 - genAI for AI model integration
 - `pytest` for running unit tests
+- `PyPDF2` for extracting text of pdfs
 
 ## Setup Instructions
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/alifurkant/ChatBotWithGemini
-cd ChatBotWithGemini
+git clone https://github.com/alifurkant/chatBotWithGeminiAI
+cd chatBotWithGeminiAI
 ```
 
 ### 2. Environment Variables
@@ -33,6 +34,7 @@ Create a `.env` file in the root of your project with the following content:
 
 ```env
 API_KEY=your_genai_api_key
+APP_ENVIRONMENT = 'DEVELOPMENT' or 'PRODUCTION' according to your choice
 ```
 
 ### 3. Run with Docker Compose
@@ -64,7 +66,7 @@ pip install -r requirements.txt
 2. Run the FastAPI app:
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn api:app --reload
 ```
 
 The app will now be running locally at `http://localhost:8000`.
@@ -205,4 +207,4 @@ Tests cover:
 ├── README.md
 ├── requirements.txt
 ├── test_chat.py
-├── TestPdfs
+└── TestPdfs

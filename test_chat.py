@@ -73,10 +73,8 @@ def test_chat(data):
     pdf_id = data['pdf_id']
     message = "what is this pdf about?"
     
-    # Create a test request model for chatting
     request_model = ChatRequestModel(message=message)
     
-    # Make the POST request to the chat endpoint
     response = client.post(f"/v1/chat/{pdf_id}", json=request_model.dict())
     
     assert response.status_code == 200, f"Failed to chat with PDF ID {pdf_id}"

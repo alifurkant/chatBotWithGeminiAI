@@ -120,47 +120,63 @@ async def create_upload_file(file: UploadFile) -> PdfReturnModel:
     return pdf_model
 
 @app_router.post("/chat/{pdf_id}")
-async def chat(pdf_id,request_model : ChatRequestModel)->dict:
+async def chat(pdf_id: str, request_model: ChatRequestModel) -> dict:
+    # Log the incoming request details
+    logging.info({"message_of_request": request_model.message, "pdf_id": pdf_id})
+    
+    # Check if the API key is present in the environment
     api_key = os.environ.get("API_KEY")
-
-    logging.info({"messsage of the request": request_model.message})
-    logging.info({"pdf id" :pdf_id})
     if not api_key:
-        logging.error({"error":"API key is missing or not configured properly."})
+        logging.error({"error": "API key is missing or not configured properly."})
         raise HTTPException(status_code=500, detail="API key is missing or not configured properly.")
     
+    # Initialize the AI model
     try:
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel("gemini-1.5-flash")
     except Exception as e:
-        logging.error({"error":f"Error initializing AI model: {str(e)}"})
+        logging.error({"error": f"Error initializing AI model: {str(e)}"})
         raise HTTPException(status_code=500, detail=f"Error initializing AI model: {str(e)}")
-    
+
+    # Load metadata and find the corresponding PDF file
     metadata_file_path = os.path.join("app/docs", "metadata.json")
-    if os.path.exists(metadata_file_path):
-        with open(metadata_file_path, "r") as metadata_file:
-            metadata = json.load(metadata_file)
+    if not os.path.exists(metadata_file_path):
+        logging.error({"error": "Metadata file not found."})
+        raise HTTPException(status_code=404, detail="Metadata file not found.")
+    
+    with open(metadata_file_path, "r") as metadata_file:
+        metadata = json.load(metadata_file)
+    
+    # Find the PDF by its ID
+    file_name = None
     for data in metadata:
-        if data['pdf_id']==pdf_id:
-            file_name= data['file_name']
+        if data['pdf_id'] == pdf_id:
+            file_name = data['file_name']
             break
-    pdf_path = f"app/docs/{file_name}"
+
+    if not file_name:
+        logging.error({"error": f"PDF with ID '{pdf_id}' not found in metadata."})
+        raise HTTPException(status_code=404, detail=f"PDF with ID '{pdf_id}' not found in metadata.")
     
+    # Check if the PDF file exists in the specified path
+    pdf_path = os.path.join("app/docs", file_name)
     if not os.path.exists(pdf_path):
-        logging.error({"error":f"PDF with ID '{pdf_id}' not found."})
-        raise HTTPException(status_code=404, detail=f"PDF with ID '{pdf_id}' not found.")
-    
+        logging.error({"error": f"PDF file '{file_name}' not found on disk."})
+        raise HTTPException(status_code=404, detail=f"PDF file '{file_name}' not found.")
+
+    # Upload the PDF file using the AI model
     try:
         sample_pdf = genai.upload_file(pdf_path)
     except Exception as e:
-        logging.error({"error":f"Error uploading PDF: {str(e)}"})
-        raise HTTPException(status_code=500, detail=f"Error uploading PDF: {str(e)}")
+        logging.error({"error": f"Error uploading PDF file: {str(e)}"})
+        raise HTTPException(status_code=500, detail=f"Error uploading PDF file: {str(e)}")
     
+    # Generate content from the request message and PDF
     try:
         response = model.generate_content([request_model.message, sample_pdf])
     except Exception as e:
-        logging.error({"error":f"Error generating content: {str(e)}"})
+        logging.error({"error": f"Error generating content: {str(e)}"})
         raise HTTPException(status_code=500, detail=f"Error generating content: {str(e)}")
-    logging.info({"result": "response returned successfully."})
-    logging.info({"response": response.text})
+    
+    logging.info({"result": "Response returned successfully.", "response": response.text})
     return {"response": response.text}

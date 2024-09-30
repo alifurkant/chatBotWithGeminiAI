@@ -1,0 +1,29 @@
+Q2) Having 1 Million context size is great but output tokens are limited to 8196, how would you queries that has more than 8196 tokens?
+
+A2) Bu durum için en basit çözüm yolu çıktımızı (output) parçalara bölmektir. Örneğin,
+
+- Bu PDF'in ilk 10 sayfasını yorumla.
+- Bu PDF'in 10-20 sayfalar arasını yorumla.
+
+- Bu soru için ilk 8196 token'lik cevabı yazar mısın ?
+- Bu soru için 8196. tokenden sonraki cevabı yazar mısın ?
+
+- Bu PDF'i benim için ana başlıklarla özetler misin?
+- 1. Ana başlığı benim için detaylı açıklar mısın?
+
+Bir başka çözüm yolu da RAG (Retrieval-Augmented Generation) yoluyla tek seferde değil adım-adım ilerleyerek sorunun çözümününe ulaşmaktır.
+
+Q3) Writing unit tests are great for ensuring the app works just fine, but how would you evaluate the performance of the Large Language Model?
+
+A3) Bu soruyu cevabın doğruluğu (Accuracy) açısından değerlendirecek olursak aklıma ilk gelen çözüm farklı modeller arasında cross-check yapmaktır. A modeline ve B modeline 
+aynı soruyu yöneltmemizin akabinde bu modellere cevaplarının uyumlu veya benzer olup olmadığını soracak bir unittest yazılabilir.
+
+Bir başka çözüm yolu da şu an ChatGpt de karşımıza çok çıkan olası sonuçlardan birini kullanıcıya seçtirerek insan eliyle daha doğruyu göstererek modeli eğitmeye çalışmaktır.
+
+Accuracy açısından diğer bir çözüm yolu da sonucu zaten belli olan soruları modele sorarak sonuçları karşılaştırmaktır.
+
+Bu soruyu Performans olarak değerlendirdiğimizde aslında her uygulamada karşımıza çıkan metrikler çıkacaktır. Response time, Memory veya Resource Usage metriklerini 
+göz önünde bulundurarak bir test hazırlanabilir. Bunun dışında LLM'ler için sonuca kaç tokende ulaştığı her bir token için ne kadar response time'a ve Resource kullanımına
+sahip olduğu gibi testler de hazırlanabilir.
+
+Modelin kompleks query'lerle başa çıkma becerisi kullandığı token sayısıyla ölçülebilir.
