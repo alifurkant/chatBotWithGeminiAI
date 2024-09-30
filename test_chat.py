@@ -46,6 +46,18 @@ def test_create_upload_file(pdf_file):
     data = response.json()
     assert "pdf_id" in data, f"Response missing 'pdf_id' for {pdf_file}"
 
+    metadata = load_metadata()
+
+    for data in metadata:
+        if data['file_name']==pdf_file:
+            metadata.remove(data)
+    metadata_file_path = os.path.join('app/docs', "metadata.json")
+    with open(metadata_file_path, "w") as metadata_file:
+        json.dump(metadata, metadata_file, indent=4)
+    
+    if os.path.exists(pdf_path):
+        os.remove('app/docs/'+pdf_file)
+    
 # @pytest.fixture(scope="module")
 def load_metadata():
     metadata_file_path = os.path.join('app/docs', "metadata.json")

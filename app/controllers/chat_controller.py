@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from datetime import datetime
 from app.models.PdfReturnModel import PdfReturnModel
+
 load_dotenv()
 
 if os.environ.get("APP_ENVIRONMENT")=="PRODUCTION":

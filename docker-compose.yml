@@ -7,5 +7,5 @@ services:
     ports:
       - "8000:8000"
     environment:
-      API_KEY: ''
+      API_KEY: 'AIzaSyADKHUlAtYLErFky6pPB3I3XbPbwN9V4Sw'
       APP_ENVIRONMENT : 'DEVELOPMENT'

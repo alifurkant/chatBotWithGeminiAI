@@ -4,7 +4,7 @@ from app.models.ErrorHandlingMiddleware import ErrorHandlingMiddleware
 from app.controllers.chat_controller import app_router
 
 
-app = FastAPI(title='ChatBot SevenApps Case')
+app = FastAPI(title='ChatBot With Gemini AI')
 
 app.add_middleware(ErrorHandlingMiddleware)
 
