@@ -31,9 +31,9 @@ def test_upload_file_already_exists():
     assert response.json() == {"detail": f"File '{file_name}' already exists. Please choose a different name for your file."}
     os.remove(file_path)
 
-@pytest.mark.parametrize("pdf_file", os.listdir('TestPdfs'))
+@pytest.mark.parametrize("pdf_file", os.listdir('app/test_pdfs'))
 def test_create_upload_file(pdf_file):
-    test_pdf_path = os.path.join('TestPdfs', pdf_file)
+    test_pdf_path = os.path.join('app/test_pdfs', pdf_file)
 
     pdf_path=os.path.join('app/docs/', pdf_file)
     if os.path.exists(pdf_path):
