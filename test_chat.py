@@ -1,9 +1,11 @@
 import pytest,os,json
 from fastapi.testclient import TestClient
-from api import app 
+from main import app 
 from unittest.mock import patch
 from app.models.ChatRequestModel import ChatRequestModel
+import warnings
 
+warnings.filterwarnings("ignore", category=Warning)
 client = TestClient(app)
 
 def test_upload_file_invalid_type():

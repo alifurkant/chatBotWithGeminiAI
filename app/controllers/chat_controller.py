@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from datetime import datetime
 from app.models.PdfReturnModel import PdfReturnModel
+from app.tasks.chat import chat
 
 load_dotenv()
 
@@ -16,18 +17,18 @@ if os.environ.get("APP_ENVIRONMENT")=="PRODUCTION":
 else:
     logging.basicConfig(level=logging.INFO)
 
-app_router = APIRouter(
-    prefix="/v1",  
-    tags=["v1"],   
+chat_router = APIRouter(
+    prefix="/AI",  
+    tags=["AI"],   
 )
 
-@app_router.get("/", response_class = RedirectResponse, include_in_schema = False)
+@chat_router.get("/", response_class = RedirectResponse, include_in_schema = False)
 async def docs():
     return RedirectResponse(url = "/docs")
 
-@app_router.post("/pdf/")
+@chat_router.post("/pdf/")
 async def create_upload_file(file: UploadFile) -> PdfReturnModel:
-    upload_directory = "app/docs/"
+    upload_directory = "docs/"
     MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
     metadata_file_path = os.path.join(upload_directory, "metadata.json")
 
@@ -115,68 +116,27 @@ async def create_upload_file(file: UploadFile) -> PdfReturnModel:
         f.write(content)
     logging.info({"result": f"File '{file.filename}' saved successfully."})
 
-    # Return the PdfReturnModel with the generated pdf_id
     pdf_model = PdfReturnModel.Builder.builder().set_pdf_id(name_of_file).build()
     return pdf_model
 
-@app_router.post("/chat/{pdf_id}")
-async def chat(pdf_id: str, request_model: ChatRequestModel) -> dict:
-    # Log the incoming request details
+@chat_router.post("/chat/{pdf_id}")
+async def chat_ai(pdf_id: str, request_model: ChatRequestModel) -> dict:
+
     logging.info({"message_of_request": request_model.message, "pdf_id": pdf_id})
     
-    # Check if the API key is present in the environment
-    api_key = os.environ.get("API_KEY")
-    if not api_key:
-        logging.error({"error": "API key is missing or not configured properly."})
-        raise HTTPException(status_code=500, detail="API key is missing or not configured properly.")
-    
-    # Initialize the AI model
-    try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
-    except Exception as e:
-        logging.error({"error": f"Error initializing AI model: {str(e)}"})
-        raise HTTPException(status_code=500, detail=f"Error initializing AI model: {str(e)}")
+    api_key = chat.get_apikey()
 
-    # Load metadata and find the corresponding PDF file
-    metadata_file_path = os.path.join("app/docs", "metadata.json")
-    if not os.path.exists(metadata_file_path):
-        logging.error({"error": "Metadata file not found."})
-        raise HTTPException(status_code=404, detail="Metadata file not found.")
-    
-    with open(metadata_file_path, "r") as metadata_file:
-        metadata = json.load(metadata_file)
-    
-    # Find the PDF by its ID
-    file_name = None
-    for data in metadata:
-        if data['pdf_id'] == pdf_id:
-            file_name = data['file_name']
-            break
+    model = chat.initialize_genai(api_key)
 
-    if not file_name:
-        logging.error({"error": f"PDF with ID '{pdf_id}' not found in metadata."})
-        raise HTTPException(status_code=404, detail=f"PDF with ID '{pdf_id}' not found in metadata.")
+    file_name=pdf_id
     
-    # Check if the PDF file exists in the specified path
-    pdf_path = os.path.join("app/docs", file_name)
-    if not os.path.exists(pdf_path):
-        logging.error({"error": f"PDF file '{file_name}' not found on disk."})
-        raise HTTPException(status_code=404, detail=f"PDF file '{file_name}' not found.")
+    pdf_path = chat.get_pdf_path(request_model.date,file_name)
 
     # Upload the PDF file using the AI model
-    try:
-        sample_pdf = genai.upload_file(pdf_path)
-    except Exception as e:
-        logging.error({"error": f"Error uploading PDF file: {str(e)}"})
-        raise HTTPException(status_code=500, detail=f"Error uploading PDF file: {str(e)}")
+    sample_pdf=chat.upload_pdf_to_genai(pdf_path=pdf_path)
     
     # Generate content from the request message and PDF
-    try:
-        response = model.generate_content([request_model.message, sample_pdf])
-    except Exception as e:
-        logging.error({"error": f"Error generating content: {str(e)}"})
-        raise HTTPException(status_code=500, detail=f"Error generating content: {str(e)}")
+    response = chat.generate_content(model,request_model.message,sample_pdf)
     
     logging.info({"result": "Response returned successfully.", "response": response.text})
     return {"response": response.text}
